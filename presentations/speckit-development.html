@@ -1,0 +1,3020 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Spec-Kit Development</title>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/all.min.js"
+      crossorigin="anonymous"
+      defer
+    ></script>
+    <style>
+      /* ─── Reset & Base ─────────────────────────────────────────── */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg-deep: #08090a;
+        --bg-panel: #0f1011;
+        --bg-surface: #191a1b;
+        --bg-elevated: #28282c;
+        --text-primary: #f7f8f8;
+        --text-secondary: #d0d6e0;
+        --text-muted: #8a8f98;
+        --text-subtle: #62666d;
+        --brand: #5e6ad2;
+        --accent: #7170ff;
+        --accent-hover: #828fff;
+        --success: #27a644;
+        --border-subtle: rgba(255, 255, 255, 0.05);
+        --border-std: rgba(255, 255, 255, 0.08);
+        --border-solid: #23252a;
+      }
+
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        background: var(--bg-deep);
+        color: var(--text-primary);
+        font-family:
+          'Inter',
+          'SF Pro Display',
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-feature-settings: 'cv01', 'ss03';
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ─── Slides Container ──────────────────────────────────────── */
+      .slides-wrap {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 56px 80px 64px 80px;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(60px);
+        transition:
+          opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .slide.active {
+        opacity: 1;
+        pointer-events: all;
+        transform: translateY(0);
+      }
+
+      .slide.exit-up {
+        opacity: 0;
+        transform: translateY(-60px);
+        transition:
+          opacity 0.32s cubic-bezier(0.55, 0, 0.8, 0.45),
+          transform 0.32s cubic-bezier(0.55, 0, 0.8, 0.45);
+      }
+
+      .slide.exit-down {
+        opacity: 0;
+        transform: translateY(60px);
+        transition:
+          opacity 0.32s cubic-bezier(0.55, 0, 0.8, 0.45),
+          transform 0.32s cubic-bezier(0.55, 0, 0.8, 0.45);
+      }
+
+      /* ─── Staggered children ────────────────────────────────────── */
+      .slide.active .stagger > * {
+        animation: staggerIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      .slide.active .stagger > *:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+      .slide.active .stagger > *:nth-child(2) {
+        animation-delay: 0.13s;
+      }
+      .slide.active .stagger > *:nth-child(3) {
+        animation-delay: 0.21s;
+      }
+      .slide.active .stagger > *:nth-child(4) {
+        animation-delay: 0.29s;
+      }
+      .slide.active .stagger > *:nth-child(5) {
+        animation-delay: 0.37s;
+      }
+      .slide.active .stagger > *:nth-child(6) {
+        animation-delay: 0.44s;
+      }
+      .slide.active .stagger > *:nth-child(7) {
+        animation-delay: 0.51s;
+      }
+
+      @keyframes staggerIn {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ─── Progress Indicator (right edge) ──────────────────────── */
+      .progress-bar {
+        position: fixed;
+        right: 28px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        z-index: 100;
+      }
+
+      .progress-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.16);
+        cursor: pointer;
+        transition:
+          background 0.3s,
+          transform 0.3s;
+        border: none;
+        padding: 0;
+      }
+
+      .progress-dot:hover {
+        background: rgba(255, 255, 255, 0.38);
+        transform: scale(1.4);
+      }
+      .progress-dot.active {
+        background: var(--accent);
+        transform: scale(1.5);
+        box-shadow: 0 0 8px rgba(113, 112, 255, 0.5);
+      }
+
+      .progress-counter {
+        margin-top: 6px;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 10px;
+        color: var(--text-subtle);
+        text-align: center;
+        line-height: 1.5;
+      }
+
+      /* ─── Nav Arrows ────────────────────────────────────────────── */
+      .nav-arrows {
+        position: fixed;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 100;
+      }
+
+      .nav-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid var(--border-std);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-secondary);
+        font-size: 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+
+      .nav-btn:hover {
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--text-primary);
+      }
+      .nav-btn:disabled {
+        opacity: 0.22;
+        cursor: not-allowed;
+      }
+
+      /* ─── Typography ────────────────────────────────────────────── */
+      .slide-inner {
+        max-width: 880px;
+        width: 100%;
+      }
+      .slide-inner.wide {
+        max-width: 1080px;
+      }
+      .slide-inner.narrow {
+        max-width: 720px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 510;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 20px;
+      }
+
+      .eyebrow-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+
+      h1.display {
+        font-size: clamp(38px, 5.5vw, 68px);
+        font-weight: 510;
+        line-height: 1.01;
+        letter-spacing: -1.5px;
+        color: var(--text-primary);
+        margin-bottom: 22px;
+      }
+
+      h2.display {
+        font-size: clamp(28px, 3.8vw, 50px);
+        font-weight: 510;
+        line-height: 1.05;
+        letter-spacing: -1px;
+        color: var(--text-primary);
+        margin-bottom: 16px;
+      }
+
+      h3.section-title {
+        font-size: 28px;
+        font-weight: 510;
+        line-height: 1.13;
+        letter-spacing: -0.6px;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 1.65;
+        letter-spacing: -0.15px;
+        color: var(--text-muted);
+        max-width: 640px;
+      }
+
+      .body-text {
+        font-size: 14.5px;
+        font-weight: 400;
+        line-height: 1.65;
+        color: var(--text-secondary);
+      }
+
+      /* ─── Mac Terminal ──────────────────────────────────────────── */
+      .terminal {
+        border-radius: 10px;
+        border: 1px solid var(--border-std);
+        overflow: hidden;
+        background: var(--bg-panel);
+        box-shadow:
+          rgba(0, 0, 0, 0.45) 0 4px 28px,
+          rgba(0, 0, 0, 0.18) 0 0 0 1px;
+        position: relative;
+      }
+
+      .terminal-titlebar {
+        background: #2d2e30;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        gap: 6px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.35);
+        position: relative;
+        flex-shrink: 0;
+      }
+
+      .traffic-light {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .tl-red {
+        background: #ff5f57;
+        box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+      }
+      .tl-yellow {
+        background: #febc2e;
+        box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+      }
+      .tl-green {
+        background: #28c840;
+        box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+      }
+
+      .terminal-title {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--text-subtle);
+        font-family: 'JetBrains Mono', monospace;
+        user-select: none;
+      }
+
+      .terminal-copy-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-subtle);
+        border-radius: 4px;
+        color: var(--text-subtle);
+        font-size: 11px;
+        font-weight: 510;
+        padding: 2px 8px;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif;
+        font-feature-settings: 'cv01', 'ss03';
+        transition:
+          background 0.15s,
+          color 0.15s;
+        z-index: 10;
+      }
+      .terminal-copy-btn:hover {
+        background: rgba(255, 255, 255, 0.09);
+        color: var(--text-secondary);
+      }
+      .terminal-copy-btn.copied {
+        color: var(--success);
+        border-color: rgba(39, 166, 68, 0.3);
+      }
+
+      .terminal-body {
+        background: var(--bg-panel);
+        padding: 16px 18px 18px;
+        font-family:
+          'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+        font-size: 12.5px;
+        line-height: 1.75;
+        overflow-x: auto;
+      }
+
+      .t-line {
+        display: flex;
+        align-items: flex-start;
+      }
+      .t-prompt {
+        color: var(--brand);
+        white-space: nowrap;
+        user-select: none;
+      }
+      .t-cmd {
+        color: var(--text-primary);
+        white-space: pre;
+      }
+
+      .t-cursor {
+        display: inline-block;
+        width: 7px;
+        height: 12px;
+        background: var(--text-primary);
+        margin-left: 2px;
+        vertical-align: text-top;
+        animation: blink 1.1s step-end infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      .t-output {
+        margin-top: 2px;
+      }
+      .t-bullet {
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+        padding: 1px 0;
+      }
+      .t-bullet-dot {
+        color: var(--accent);
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .t-bullet-text {
+        color: var(--text-secondary);
+      }
+      .t-bullet-text strong {
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+      .t-bullet-text .hl {
+        color: var(--accent);
+      }
+
+      .t-divider {
+        border: none;
+        border-top: 1px solid var(--border-subtle);
+        margin: 8px 0;
+      }
+      .t-success {
+        color: var(--success);
+      }
+      .t-muted {
+        color: var(--text-subtle);
+      }
+
+      /* ─── Problem grid ──────────────────────────────────────────── */
+      .problem-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .problem-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .problem-card .icon {
+        width: 20px;
+        height: 20px;
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+      }
+      .problem-card .icon svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+      .problem-card h4 {
+        font-size: 13.5px;
+        font-weight: 590;
+        color: var(--text-primary);
+        letter-spacing: -0.12px;
+      }
+      .problem-card p {
+        font-size: 12px;
+        line-height: 1.6;
+        color: var(--text-muted);
+      }
+
+      /* ─── Flow Diagram ──────────────────────────────────────────── */
+      .flow-wrap {
+        width: 100%;
+        overflow-x: auto;
+        margin-top: 4px;
+      }
+
+      .flow-svg {
+        width: 100%;
+        max-width: 980px;
+        display: block;
+        margin: 0 auto;
+      }
+
+      .flow-legend {
+        display: flex;
+        gap: 22px;
+        align-items: center;
+        justify-content: center;
+        margin-top: 18px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--text-muted);
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      .legend-line {
+        width: 26px;
+        height: 1.5px;
+      }
+      .legend-line.solid {
+        background: var(--accent);
+      }
+      .legend-line.dashed {
+        background: transparent;
+        border-top: 1.5px dashed rgba(113, 112, 255, 0.5);
+      }
+      .legend-swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+        border: 1.5px dashed rgba(113, 112, 255, 0.4);
+        background: rgba(113, 112, 255, 0.05);
+      }
+
+      /* ─── Two-column ────────────────────────────────────────────── */
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 34px;
+        align-items: start;
+        margin-top: 24px;
+      }
+      .two-col.left-heavy {
+        grid-template-columns: 1fr 1.35fr;
+      }
+      .two-col.right-heavy {
+        grid-template-columns: 1.35fr 1fr;
+      }
+
+      /* ─── Artifact list ─────────────────────────────────────────── */
+      .artifact-list {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        margin-top: 16px;
+      }
+
+      .artifact-item {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 9px 13px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-subtle);
+        border-radius: 6px;
+      }
+
+      .artifact-icon {
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+      .artifact-name {
+        font-size: 12px;
+        font-weight: 510;
+        color: var(--text-primary);
+        font-family: 'JetBrains Mono', monospace;
+      }
+      .artifact-desc {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-left: auto;
+        text-align: right;
+      }
+
+      /* ─── Benefit grid ──────────────────────────────────────────── */
+      .benefit-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .benefit-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 20px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        text-align: center;
+      }
+
+      .benefit-number {
+        font-size: clamp(24px, 3.2vw, 38px);
+        font-weight: 510;
+        letter-spacing: -0.7px;
+        color: var(--accent);
+        line-height: 1;
+        font-family: 'JetBrains Mono', monospace;
+      }
+
+      .benefit-label {
+        font-size: 12px;
+        font-weight: 510;
+        color: var(--text-muted);
+      }
+
+      /* ─── Tags ──────────────────────────────────────────────────── */
+      .tag {
+        display: inline-block;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        font-weight: 500;
+        background: rgba(113, 112, 255, 0.1);
+        color: var(--accent);
+        border: 1px solid rgba(113, 112, 255, 0.2);
+        border-radius: 4px;
+        padding: 1px 7px;
+      }
+
+      .tag.opt {
+        background: rgba(113, 112, 255, 0.05);
+        border-style: dashed;
+        border-color: rgba(113, 112, 255, 0.25);
+        color: rgba(113, 112, 255, 0.72);
+      }
+
+      /* ─── Hero gradient line ────────────────────────────────────── */
+      .hero-gradient-line {
+        height: 1px;
+        width: 160px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent),
+          transparent
+        );
+        margin: 24px 0;
+      }
+
+      /* ─── Slide backgrounds ─────────────────────────────────────── */
+      .slide-hero {
+        background:
+          radial-gradient(
+            ellipse 80% 55% at 50% 0%,
+            rgba(94, 106, 210, 0.09) 0%,
+            transparent 68%
+          ),
+          var(--bg-deep);
+      }
+      .slide-dark {
+        background: var(--bg-deep);
+      }
+
+      /* ─── Optional block ────────────────────────────────────────── */
+      .opt-block {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        padding: 9px 13px;
+        background: rgba(113, 112, 255, 0.04);
+        border: 1px dashed rgba(113, 112, 255, 0.22);
+        border-radius: 6px;
+        margin-top: 7px;
+      }
+
+      .opt-block-label {
+        font-size: 9px;
+        font-weight: 510;
+        font-family: 'JetBrains Mono', monospace;
+        letter-spacing: 0.07em;
+        color: rgba(113, 112, 255, 0.55);
+        white-space: nowrap;
+        padding-top: 2px;
+      }
+
+      .opt-block-content {
+        flex: 1;
+      }
+      .opt-block-cmd {
+        font-size: 12px;
+        font-family: 'JetBrains Mono', monospace;
+        color: rgba(113, 112, 255, 0.82);
+        margin-bottom: 2px;
+      }
+      .opt-block-desc {
+        font-size: 11.5px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
+      /* ─── Info box ──────────────────────────────────────────────── */
+      .info-box {
+        padding: 12px 14px;
+        background: rgba(94, 106, 210, 0.06);
+        border: 1px solid rgba(94, 106, 210, 0.2);
+        border-radius: 8px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.65;
+      }
+
+      /* ─── Scrollbar ─────────────────────────────────────────────── */
+      ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 3px;
+      }
+
+      /* ─── Toast ─────────────────────────────────────────────────── */
+      .toast {
+        position: fixed;
+        bottom: 76px;
+        left: 50%;
+        transform: translateX(-50%) translateY(16px);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-std);
+        border-radius: 6px;
+        padding: 9px 16px;
+        font-size: 12.5px;
+        font-weight: 510;
+        color: var(--success);
+        box-shadow: rgba(0, 0, 0, 0.4) 0 4px 12px;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.22s,
+          transform 0.22s;
+        z-index: 200;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ══ PROGRESS INDICATOR ══════════════════════════════════════ -->
+    <nav
+      class="progress-bar"
+      id="progressBar"
+      aria-label="Navegação de slides"
+    ></nav>
+
+    <!-- ══ NAVIGATION ARROWS ════════════════════════════════════════ -->
+    <div class="nav-arrows">
+      <button
+        class="nav-btn"
+        id="btnPrev"
+        aria-label="Slide anterior"
+      >
+        ←
+      </button>
+      <button
+        class="nav-btn"
+        id="btnNext"
+        aria-label="Próximo slide"
+      >
+        →
+      </button>
+    </div>
+
+    <!-- ══ TOAST ════════════════════════════════════════════════════ -->
+    <div
+      class="toast"
+      id="toast"
+    >
+      ✓ Comando copiado!
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+     SLIDES
+══════════════════════════════════════════════════════════════ -->
+    <div
+      class="slides-wrap"
+      id="slidesWrap"
+    >
+      <!-- ─── SLIDE 1: HERO ──────────────────────────────────────── -->
+      <section
+        class="slide slide-hero"
+        data-slide="1"
+      >
+        <div
+          class="slide-inner narrow stagger"
+          style="
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          "
+        >
+          <div class="eyebrow">
+            <span class="eyebrow-dot"></span>Metodologia de Desenvolvimento
+          </div>
+
+          <h1
+            class="display"
+            style="text-align: center"
+          >
+            Spec-Kit<br /><span style="color: var(--accent)">Development</span>
+          </h1>
+
+          <div class="hero-gradient-line"></div>
+
+          <p
+            class="subtitle"
+            style="text-align: center; max-width: 560px"
+          >
+            Do problema ao código de produção com rastreabilidade total, zero
+            ambiguidade e geração automática de tarefas.
+          </p>
+
+          <div
+            style="
+              margin-top: 28px;
+              display: flex;
+              gap: 9px;
+              flex-wrap: wrap;
+              justify-content: center;
+            "
+          >
+            <span class="tag">/speckit.constitution</span>
+            <span class="tag">/speckit.specify</span>
+            <span class="tag">/speckit.plan</span>
+            <span class="tag">/speckit.tasks</span>
+            <span class="tag">/speckit.implement</span>
+          </div>
+
+          <div
+            style="
+              margin-top: 10px;
+              display: flex;
+              gap: 9px;
+              flex-wrap: wrap;
+              justify-content: center;
+              align-items: center;
+            "
+          >
+            <span
+              style="
+                font-size: 11px;
+                color: var(--text-subtle);
+                font-family: 'JetBrains Mono', monospace;
+              "
+              >opcionais:</span
+            >
+            <span class="tag opt">/speckit.clarify</span>
+            <span class="tag opt">/speckit.checklist</span>
+            <span class="tag opt">/speckit.analyze</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 2: PROBLEMA ──────────────────────────────────── -->
+      <section
+        class="slide slide-dark"
+        data-slide="2"
+      >
+        <div class="slide-inner wide">
+          <div class="stagger">
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>O Problema
+            </div>
+            <h2 class="display">
+              Desenvolvimento sem<br /><span style="color: #ff5f57"
+                >estrutura custa caro</span
+              >
+            </h2>
+            <p class="subtitle">
+              Equipes que partem direto para o código sem um processo
+              estruturado enfrentam os mesmos padrões de falha repetidamente.
+            </p>
+            <div class="problem-grid">
+              <div class="problem-card">
+                <div class="icon"><i class="fa-solid fa-cloud"></i></div>
+                <h4>Ambiguidade de Requisitos</h4>
+                <p>
+                  Decisões de design tomadas no meio da implementação geram
+                  retrabalho e débito técnico acumulado.
+                </p>
+              </div>
+              <div class="problem-card">
+                <div class="icon"><i class="fa-solid fa-arrows-rotate"></i></div>
+                <h4>Scope Creep Silencioso</h4>
+                <p>
+                  Sem uma especificação imutável como referência, o escopo
+                  expande a cada sprint sem que ninguém perceba.
+                </p>
+              </div>
+              <div class="problem-card">
+                <div class="icon"><i class="fa-solid fa-puzzle-piece"></i></div>
+                <h4>Falta de Rastreabilidade</h4>
+                <p>
+                  Impossível saber qual tarefa implementa qual user story ou
+                  qual princípio arquitetural está sendo validado.
+                </p>
+              </div>
+              <div class="problem-card">
+                <div class="icon"><i class="fa-solid fa-ban"></i></div>
+                <h4>Violações Arquiteturais</h4>
+                <p>
+                  Sem princípios definidos antes do código, padrões errados se
+                  propagam por toda a base de código.
+                </p>
+              </div>
+              <div class="problem-card">
+                <div class="icon"><i class="fa-solid fa-clock"></i></div>
+                <h4>Estimativas Imprecisas</h4>
+                <p>
+                  Sem tarefas geradas de contratos reais, estimativas são
+                  especulação — e bugs aparecem tarde demais.
+                </p>
+              </div>
+              <div class="problem-card">
+                <div class="icon"><i class="fa-solid fa-eye-slash"></i></div>
+                <h4>Revisões sem Contexto</h4>
+                <p>
+                  Revisores sem acesso à especificação aprovam código correto
+                  tecnicamente mas errado funcionalmente.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 3: PRÉ-REQUISITOS ───────────────────────────── -->
+      <section
+        class="slide slide-dark"
+        data-slide="3"
+      >
+        <div class="slide-inner wide">
+          <div
+            class="two-col stagger"
+            style="align-items: start"
+          >
+            <div>
+              <div class="eyebrow">
+                <span class="eyebrow-dot"></span>Pré-requisitos
+              </div>
+              <h3 class="section-title">Instalação</h3>
+              <p
+                class="body-text"
+                style="margin-bottom: 20px"
+              >
+                O Spec-Kit é distribuído como um pacote Python e instalado via
+                <strong style="color: var(--text-primary)">uv</strong>, o
+                gerenciador de pacotes ultra-rápido da Astral. Dois comandos e
+                você está pronto.
+              </p>
+
+              <div class="artifact-list">
+                <div class="artifact-item">
+                  <span class="artifact-icon">⚡</span>
+                  <span class="artifact-name">uv</span>
+                  <span class="artifact-desc"
+                    >gerenciador de pacotes Python (Astral)</span
+                  >
+                </div>
+                <div class="artifact-item">
+                  <span class="artifact-icon">🌐</span>
+                  <span class="artifact-name">Git + acesso ao GitHub</span>
+                  <span class="artifact-desc"
+                    >para clonar o repositório do spec-kit</span
+                  >
+                </div>
+                <div class="artifact-item">
+                  <span class="artifact-icon">🤖</span>
+                  <span class="artifact-name">GitHub Copilot</span>
+                  <span class="artifact-desc"
+                    >integração padrão (ou outra disponível)</span
+                  >
+                </div>
+              </div>
+
+              <div
+                class="info-box"
+                style="margin-top: 20px"
+              >
+                Substitua
+                <strong style="color: var(--accent)">vX.Y.Z</strong> pela versão
+                desejada do Spec-Kit antes de executar o segundo comando.
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 16px">
+              <!-- Terminal 1: instalar uv -->
+              <div class="terminal">
+                <div class="terminal-titlebar">
+                  <span class="traffic-light tl-red"></span>
+                  <span class="traffic-light tl-yellow"></span>
+                  <span class="traffic-light tl-green"></span>
+                  <span class="terminal-title">zsh — instalação</span>
+                  <button
+                    class="terminal-copy-btn"
+                    data-copy="curl -LsSf https://astral.sh/uv/install.sh | sh"
+                  >
+                    Copiar
+                  </button>
+                </div>
+                <div class="terminal-body">
+                  <div
+                    class="t-muted"
+                    style="font-size: 11px; margin-bottom: 6px"
+                  >
+                    1. Instalar uv (gerenciador de pacotes)
+                  </div>
+                  <div class="t-line">
+                    <span class="t-prompt">~&nbsp;$&nbsp;</span>
+                    <span
+                      class="t-cmd"
+                      data-type="curl -LsSf https://astral.sh/uv/install.sh | sh"
+                    ></span
+                    ><span class="t-cursor"></span>
+                  </div>
+                  <hr class="t-divider" />
+                  <div class="t-output">
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text t-muted"
+                        >Downloading uv installer...</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text t-success"
+                        >uv installed successfully ✓</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Terminal 2: inicializar spec-kit -->
+              <div class="terminal">
+                <div class="terminal-titlebar">
+                  <span class="traffic-light tl-red"></span>
+                  <span class="traffic-light tl-yellow"></span>
+                  <span class="traffic-light tl-green"></span>
+                  <span class="terminal-title">zsh — ~/projeto</span>
+                  <button
+                    class="terminal-copy-btn"
+                    data-copy="uvx --from git+https://github.com/github/spec-kit.git@vX.Y.Z specify init . --integration copilot"
+                  >
+                    Copiar
+                  </button>
+                </div>
+                <div class="terminal-body">
+                  <div
+                    class="t-muted"
+                    style="font-size: 11px; margin-bottom: 6px"
+                  >
+                    2. Inicializar Spec-Kit no projeto
+                  </div>
+                  <div
+                    class="t-line"
+                    style="flex-wrap: wrap; align-items: baseline"
+                  >
+                    <span
+                      class="t-prompt"
+                      style="white-space: nowrap"
+                      >~/projeto&nbsp;$&nbsp;</span
+                    >
+                    <span
+                      class="t-cmd"
+                      style="white-space: normal; word-break: break-all"
+                      >uvx --from \<br />&nbsp;&nbsp;git+https://github.com/github/spec-kit.git@vX.Y.Z
+                      \<br />&nbsp;&nbsp;specify init . --integration
+                      copilot<span class="t-cursor"></span
+                    ></span>
+                  </div>
+                  <hr class="t-divider" />
+                  <div class="t-output">
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        >Estrutura <span class="hl">specs/</span> criada no
+                        projeto</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        >Integração <strong>Copilot</strong> configurada</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        >Comandos <span class="hl">/speckit.*</span> disponíveis
+                        no chat</span
+                      >
+                    </div>
+                    <hr class="t-divider" />
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text t-success"
+                        ><strong
+                          >Pronto. Execute /speckit.constitution para
+                          começar.</strong
+                        ></span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 4: COMMAND FLOW DIAGRAM ─────────────────────── -->
+      <section
+        class="slide slide-dark"
+        data-slide="4"
+      >
+        <div class="slide-inner wide">
+          <div class="stagger">
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>Fluxo de Comandos
+            </div>
+            <h2
+              class="display"
+              style="font-size: clamp(24px, 3vw, 40px); margin-bottom: 8px"
+            >
+              5 principais · 3 opcionais
+            </h2>
+            <p
+              class="subtitle"
+              style="font-size: 14px; margin-bottom: 0"
+            >
+              Cada comando opcional se conecta ao fluxo principal em um momento
+              específico — antes ou depois da etapa correspondente.
+            </p>
+
+            <div class="flow-wrap">
+              <!--
+            SVG Flow Diagram
+            viewBox: 0 0 960 310
+            Main row:     y=120 to y=182 (center y=151)
+            Opt above:    y=16  to y=72  (center y=44)
+            Opt below:    y=210 to y=266 (center y=238)
+
+            Column centers (node width 172, gap 20):
+              Col 1 (constitution): cx=96   x=10
+              Col 2 (specify):      cx=288  x=202
+              Col 3 (plan):         cx=480  x=394
+              Col 4 (tasks):        cx=672  x=586
+              Col 5 (implement):    cx=864  x=778
+          -->
+              <svg
+                class="flow-svg"
+                viewBox="0 0 960 310"
+                xmlns="http://www.w3.org/2000/svg"
+                role="img"
+                aria-label="Fluxo de comandos Spec-Kit com opcionais"
+              >
+                <defs>
+                  <marker
+                    id="arrMain"
+                    markerWidth="9"
+                    markerHeight="7"
+                    refX="8"
+                    refY="3.5"
+                    orient="auto"
+                  >
+                    <polygon
+                      points="0 0, 9 3.5, 0 7"
+                      fill="#7170ff"
+                    />
+                  </marker>
+                  <marker
+                    id="arrOpt"
+                    markerWidth="9"
+                    markerHeight="7"
+                    refX="8"
+                    refY="3.5"
+                    orient="auto"
+                  >
+                    <polygon
+                      points="0 0, 9 3.5, 0 7"
+                      fill="rgba(113,112,255,0.5)"
+                    />
+                  </marker>
+                </defs>
+
+                <!-- ── Main flow arrows (solid) ── -->
+                <!-- constitution → specify -->
+                <line
+                  x1="184"
+                  y1="151"
+                  x2="200"
+                  y2="151"
+                  stroke="#7170ff"
+                  stroke-width="1.5"
+                  marker-end="url(#arrMain)"
+                />
+                <!-- specify → plan -->
+                <line
+                  x1="376"
+                  y1="151"
+                  x2="392"
+                  y2="151"
+                  stroke="#7170ff"
+                  stroke-width="1.5"
+                  marker-end="url(#arrMain)"
+                />
+                <!-- plan → tasks -->
+                <line
+                  x1="568"
+                  y1="151"
+                  x2="584"
+                  y2="151"
+                  stroke="#7170ff"
+                  stroke-width="1.5"
+                  marker-end="url(#arrMain)"
+                />
+                <!-- tasks → implement -->
+                <line
+                  x1="760"
+                  y1="151"
+                  x2="776"
+                  y2="151"
+                  stroke="#7170ff"
+                  stroke-width="1.5"
+                  marker-end="url(#arrMain)"
+                />
+
+                <!-- ── Optional vertical arrows (dashed) ── -->
+                <!-- clarify (above) → plan (top) -->
+                <line
+                  x1="480"
+                  y1="74"
+                  x2="480"
+                  y2="118"
+                  stroke="rgba(113,112,255,0.48)"
+                  stroke-width="1.5"
+                  stroke-dasharray="4,3"
+                  marker-end="url(#arrOpt)"
+                />
+                <!-- plan (bottom) → checklist (top) -->
+                <line
+                  x1="480"
+                  y1="184"
+                  x2="480"
+                  y2="208"
+                  stroke="rgba(113,112,255,0.48)"
+                  stroke-width="1.5"
+                  stroke-dasharray="4,3"
+                  marker-end="url(#arrOpt)"
+                />
+                <!-- tasks (bottom) → analyze (top) -->
+                <line
+                  x1="672"
+                  y1="184"
+                  x2="672"
+                  y2="208"
+                  stroke="rgba(113,112,255,0.48)"
+                  stroke-width="1.5"
+                  stroke-dasharray="4,3"
+                  marker-end="url(#arrOpt)"
+                />
+
+                <!-- ── Timing labels ── -->
+                <text
+                  x="490"
+                  y="100"
+                  fill="rgba(113,112,255,0.58)"
+                  font-size="9.5"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  antes
+                </text>
+                <text
+                  x="490"
+                  y="200"
+                  fill="rgba(113,112,255,0.58)"
+                  font-size="9.5"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  depois
+                </text>
+                <text
+                  x="682"
+                  y="200"
+                  fill="rgba(113,112,255,0.58)"
+                  font-size="9.5"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  depois
+                </text>
+
+                <!-- ════════════ MAIN FLOW NODES ════════════ -->
+
+                <!-- 01 · constitution -->
+                <rect
+                  x="10"
+                  y="120"
+                  width="172"
+                  height="62"
+                  rx="7"
+                  fill="rgba(255,255,255,0.025)"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <text
+                  x="96"
+                  y="140"
+                  text-anchor="middle"
+                  fill="#62666d"
+                  font-size="8.5"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  01
+                </text>
+                <text
+                  x="96"
+                  y="157"
+                  text-anchor="middle"
+                  fill="#8a8f98"
+                  font-size="9"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  /speckit.
+                </text>
+                <text
+                  x="96"
+                  y="174"
+                  text-anchor="middle"
+                  fill="#7170ff"
+                  font-size="12"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  constitution
+                </text>
+
+                <!-- 02 · specify -->
+                <rect
+                  x="202"
+                  y="120"
+                  width="172"
+                  height="62"
+                  rx="7"
+                  fill="rgba(255,255,255,0.025)"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <text
+                  x="288"
+                  y="140"
+                  text-anchor="middle"
+                  fill="#62666d"
+                  font-size="8.5"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  02
+                </text>
+                <text
+                  x="288"
+                  y="157"
+                  text-anchor="middle"
+                  fill="#8a8f98"
+                  font-size="9"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  /speckit.
+                </text>
+                <text
+                  x="288"
+                  y="174"
+                  text-anchor="middle"
+                  fill="#7170ff"
+                  font-size="12"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  specify
+                </text>
+
+                <!-- 03 · plan -->
+                <rect
+                  x="394"
+                  y="120"
+                  width="172"
+                  height="62"
+                  rx="7"
+                  fill="rgba(255,255,255,0.025)"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <text
+                  x="480"
+                  y="140"
+                  text-anchor="middle"
+                  fill="#62666d"
+                  font-size="8.5"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  03
+                </text>
+                <text
+                  x="480"
+                  y="157"
+                  text-anchor="middle"
+                  fill="#8a8f98"
+                  font-size="9"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  /speckit.
+                </text>
+                <text
+                  x="480"
+                  y="174"
+                  text-anchor="middle"
+                  fill="#7170ff"
+                  font-size="12"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  plan
+                </text>
+
+                <!-- 04 · tasks -->
+                <rect
+                  x="586"
+                  y="120"
+                  width="172"
+                  height="62"
+                  rx="7"
+                  fill="rgba(255,255,255,0.025)"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <text
+                  x="672"
+                  y="140"
+                  text-anchor="middle"
+                  fill="#62666d"
+                  font-size="8.5"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  04
+                </text>
+                <text
+                  x="672"
+                  y="157"
+                  text-anchor="middle"
+                  fill="#8a8f98"
+                  font-size="9"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  /speckit.
+                </text>
+                <text
+                  x="672"
+                  y="174"
+                  text-anchor="middle"
+                  fill="#7170ff"
+                  font-size="12"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  tasks
+                </text>
+
+                <!-- 05 · implement -->
+                <rect
+                  x="778"
+                  y="120"
+                  width="172"
+                  height="62"
+                  rx="7"
+                  fill="rgba(255,255,255,0.025)"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <text
+                  x="864"
+                  y="140"
+                  text-anchor="middle"
+                  fill="#62666d"
+                  font-size="8.5"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  05
+                </text>
+                <text
+                  x="864"
+                  y="157"
+                  text-anchor="middle"
+                  fill="#8a8f98"
+                  font-size="9"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  /speckit.
+                </text>
+                <text
+                  x="864"
+                  y="174"
+                  text-anchor="middle"
+                  fill="#7170ff"
+                  font-size="12"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  implement
+                </text>
+
+                <!-- ════════════ OPTIONAL NODES ════════════ -->
+
+                <!-- clarify · above plan -->
+                <rect
+                  x="394"
+                  y="16"
+                  width="172"
+                  height="56"
+                  rx="7"
+                  fill="rgba(113,112,255,0.04)"
+                  stroke="rgba(113,112,255,0.2)"
+                  stroke-width="1"
+                  stroke-dasharray="5,3"
+                />
+                <text
+                  x="480"
+                  y="36"
+                  text-anchor="middle"
+                  fill="rgba(113,112,255,0.45)"
+                  font-size="7.5"
+                  font-family="JetBrains Mono, monospace"
+                  letter-spacing="1.8"
+                >
+                  OPCIONAL
+                </text>
+                <text
+                  x="480"
+                  y="56"
+                  text-anchor="middle"
+                  fill="rgba(113,112,255,0.75)"
+                  font-size="11"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  /speckit.clarify
+                </text>
+
+                <!-- checklist · below plan -->
+                <rect
+                  x="394"
+                  y="210"
+                  width="172"
+                  height="56"
+                  rx="7"
+                  fill="rgba(113,112,255,0.04)"
+                  stroke="rgba(113,112,255,0.2)"
+                  stroke-width="1"
+                  stroke-dasharray="5,3"
+                />
+                <text
+                  x="480"
+                  y="230"
+                  text-anchor="middle"
+                  fill="rgba(113,112,255,0.45)"
+                  font-size="7.5"
+                  font-family="JetBrains Mono, monospace"
+                  letter-spacing="1.8"
+                >
+                  OPCIONAL
+                </text>
+                <text
+                  x="480"
+                  y="250"
+                  text-anchor="middle"
+                  fill="rgba(113,112,255,0.75)"
+                  font-size="11"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  /speckit.checklist
+                </text>
+
+                <!-- analyze · below tasks -->
+                <rect
+                  x="586"
+                  y="210"
+                  width="172"
+                  height="56"
+                  rx="7"
+                  fill="rgba(113,112,255,0.04)"
+                  stroke="rgba(113,112,255,0.2)"
+                  stroke-width="1"
+                  stroke-dasharray="5,3"
+                />
+                <text
+                  x="672"
+                  y="230"
+                  text-anchor="middle"
+                  fill="rgba(113,112,255,0.45)"
+                  font-size="7.5"
+                  font-family="JetBrains Mono, monospace"
+                  letter-spacing="1.8"
+                >
+                  OPCIONAL
+                </text>
+                <text
+                  x="672"
+                  y="250"
+                  text-anchor="middle"
+                  fill="rgba(113,112,255,0.75)"
+                  font-size="11"
+                  font-family="JetBrains Mono, monospace"
+                >
+                  /speckit.analyze
+                </text>
+              </svg>
+            </div>
+
+            <!-- Legend -->
+            <div class="flow-legend">
+              <div class="legend-item">
+                <div class="legend-line solid"></div>
+                <span>fluxo principal</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-line dashed"></div>
+                <span>conexão com opcional</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-swatch"></div>
+                <span>comando opcional (borda tracejada)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 5: CONSTITUTION ──────────────────────────────── -->
+      <section
+        class="slide slide-dark"
+        data-slide="5"
+      >
+        <div class="slide-inner wide">
+          <div class="two-col left-heavy stagger">
+            <div>
+              <div class="eyebrow">
+                <span class="eyebrow-dot"></span>Etapa 1
+              </div>
+              <h3 class="section-title">Constitution</h3>
+              <p
+                class="body-text"
+                style="margin-bottom: 12px"
+              >
+                Estabelece os
+                <strong style="color: var(--text-primary)"
+                  >princípios arquiteturais</strong
+                >
+                do projeto como lei imutável. Toda feature gerada
+                subsequentemente é validada contra esses gates antes de qualquer
+                código ser escrito.
+              </p>
+              <p
+                class="body-text"
+                style="
+                  color: var(--text-muted);
+                  font-size: 13px;
+                  margin-bottom: 16px;
+                "
+              >
+                Os princípios definidos aqui são revisados pela equipe e
+                aplicados automaticamente a cada ciclo do Spec-Kit.
+              </p>
+
+              <div class="artifact-list">
+                <div class="artifact-item">
+                  <span class="artifact-icon">📐</span>
+                  <span class="artifact-name">Arquitetura em Camadas</span>
+                  <span class="artifact-desc"
+                    >controllers → services → repositories</span
+                  >
+                </div>
+                <div class="artifact-item">
+                  <span class="artifact-icon">🏗️</span>
+                  <span class="artifact-name">Bounded Contexts</span>
+                  <span class="artifact-desc"
+                    >comunicação assíncrona entre módulos</span
+                  >
+                </div>
+                <div class="artifact-item">
+                  <span class="artifact-icon">🔌</span>
+                  <span class="artifact-name">Inversão de Dependências</span>
+                  <span class="artifact-desc"
+                    >repositórios injetados via interfaces</span
+                  >
+                </div>
+                <div class="artifact-item">
+                  <span class="artifact-icon">🧪</span>
+                  <span class="artifact-name">Test-First Gate</span>
+                  <span class="artifact-desc"
+                    >cobertura mínima como critério de PR</span
+                  >
+                </div>
+                <div class="artifact-item">
+                  <span class="artifact-icon">🛡️</span>
+                  <span class="artifact-name">Error Handling Global</span>
+                  <span class="artifact-desc"
+                    >filtro único, sem try/catch em controllers</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="terminal">
+                <div class="terminal-titlebar">
+                  <span class="traffic-light tl-red"></span>
+                  <span class="traffic-light tl-yellow"></span>
+                  <span class="traffic-light tl-green"></span>
+                  <span class="terminal-title">zsh — ~/projeto</span>
+                  <button
+                    class="terminal-copy-btn"
+                    data-copy="/speckit.constitution"
+                  >
+                    Copiar
+                  </button>
+                </div>
+                <div class="terminal-body">
+                  <div class="t-line">
+                    <span class="t-prompt">~/projeto&nbsp;$&nbsp;</span>
+                    <span
+                      class="t-cmd"
+                      data-type="/speckit.constitution"
+                    ></span
+                    ><span class="t-cursor"></span>
+                  </div>
+                  <hr class="t-divider" />
+                  <div class="t-output">
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">✅ PASS</span>&nbsp;&nbsp;I. Layered
+                        Architecture</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">✅ PASS</span>&nbsp;&nbsp;II. Modular
+                        Boundaries</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">✅ PASS</span>&nbsp;&nbsp;III.
+                        Dependency Inversion</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">✅ PASS</span>&nbsp;&nbsp;IV. Test
+                        Coverage Gate</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">✅ PASS</span>&nbsp;&nbsp;V. Error
+                        Handling Global</span
+                      >
+                    </div>
+                    <hr class="t-divider" />
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text t-success"
+                        ><strong
+                          >Constitution validated. Pronto para especificar
+                          features.</strong
+                        ></span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 6: SPECIFY ───────────────────────────────────── -->
+      <section
+        class="slide slide-dark"
+        data-slide="6"
+      >
+        <div class="slide-inner wide">
+          <div class="two-col stagger">
+            <div>
+              <div class="eyebrow">
+                <span class="eyebrow-dot"></span>Etapa 2
+              </div>
+              <h3 class="section-title">Specify</h3>
+              <p
+                class="body-text"
+                style="margin-bottom: 12px"
+              >
+                Transforma uma descrição em linguagem natural em uma
+                <strong style="color: var(--text-primary)"
+                  >especificação estruturada</strong
+                >
+                com User Stories, critérios de aceitação, cenários de teste e
+                clarificações de negócio registradas.
+              </p>
+
+              <div
+                class="info-box"
+                style="margin-bottom: 14px"
+              >
+                <strong style="color: var(--text-primary)">Input:</strong>
+                descrição da feature em linguagem natural<br />
+                <strong style="color: var(--text-primary)">Output:</strong>
+                spec.md com User Stories, cenários de aceitação e constraints
+                documentados
+              </div>
+
+              <div class="artifact-list">
+                <div class="artifact-item">
+                  <span class="artifact-icon">📖</span>
+                  <span class="artifact-name">spec.md</span>
+                  <span class="artifact-desc"
+                    >User Stories + acceptance criteria</span
+                  >
+                </div>
+                <div class="artifact-item">
+                  <span class="artifact-icon">❓</span>
+                  <span class="artifact-name">Clarificações registradas</span>
+                  <span class="artifact-desc"
+                    >decisões de negócio auditáveis</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="terminal">
+                <div class="terminal-titlebar">
+                  <span class="traffic-light tl-red"></span>
+                  <span class="traffic-light tl-yellow"></span>
+                  <span class="traffic-light tl-green"></span>
+                  <span class="terminal-title">zsh — ~/projeto</span>
+                  <button
+                    class="terminal-copy-btn"
+                    data-copy="/speckit.specify"
+                  >
+                    Copiar
+                  </button>
+                </div>
+                <div class="terminal-body">
+                  <div class="t-line">
+                    <span class="t-prompt">~/projeto&nbsp;$&nbsp;</span>
+                    <span
+                      class="t-cmd"
+                      data-type="/speckit.specify"
+                    ></span
+                    ><span class="t-cursor"></span>
+                  </div>
+                  <hr class="t-divider" />
+                  <div class="t-output">
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><strong>US1</strong> — [Funcionalidade Core]
+                        <span class="hl">(P1)</span></span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><strong>US2</strong> — [Autenticação e Acesso]
+                        <span class="hl">(P1)</span></span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><strong>US3</strong> — [Operações CRUD Principais]
+                        <span class="hl">(P2)</span></span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><strong>US4</strong> — [Auditoria e Histórico]
+                        <span class="hl">(P3)</span></span
+                      >
+                    </div>
+                    <hr class="t-divider" />
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text t-muted"
+                        >N clarificações de negócio registradas</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text t-success"
+                        ><strong
+                          >spec.md criado — N user stories, M+ cenários de
+                          aceitação</strong
+                        ></span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 7: PLAN ──────────────────────────────────────── -->
+      <section
+        class="slide slide-dark"
+        data-slide="7"
+      >
+        <div class="slide-inner wide">
+          <div class="two-col stagger">
+            <div>
+              <div class="eyebrow">
+                <span class="eyebrow-dot"></span>Etapa 3
+              </div>
+              <h3 class="section-title">Plan</h3>
+              <p
+                class="body-text"
+                style="margin-bottom: 12px"
+              >
+                Produz o plano técnico completo: decisões de stack, estrutura de
+                módulos, modelo de dados e o
+                <strong style="color: var(--text-primary)"
+                  >contrato de API</strong
+                >
+                — tudo antes de qualquer linha de código.
+              </p>
+
+              <div
+                class="artifact-list"
+                style="margin-bottom: 12px"
+              >
+                <div class="artifact-item">
+                  <span class="artifact-icon">🗺️</span>
+                  <span class="artifact-name">plan.md</span>
+                  <span class="artifact-desc">stack, arquitetura, SLAs</span>
+                </div>
+                <div class="artifact-item">
+                  <span class="artifact-icon">🗄️</span>
+                  <span class="artifact-name">data-model.md</span>
+                  <span class="artifact-desc"
+                    >entidades, relações, regras de negócio</span
+                  >
+                </div>
+                <div class="artifact-item">
+                  <span class="artifact-icon">📡</span>
+                  <span class="artifact-name">openapi.yml</span>
+                  <span class="artifact-desc">contrato REST documentado</span>
+                </div>
+                <div class="artifact-item">
+                  <span class="artifact-icon">🚀</span>
+                  <span class="artifact-name">quickstart.md</span>
+                  <span class="artifact-desc"
+                    >setup de ambiente passo a passo</span
+                  >
+                </div>
+              </div>
+
+              <div class="opt-block">
+                <div class="opt-block-label">ANTES</div>
+                <div class="opt-block-content">
+                  <div class="opt-block-cmd">/speckit.clarify</div>
+                  <div class="opt-block-desc">
+                    Elimina ambiguidades com até 5 perguntas estruturadas antes
+                    do planejamento técnico
+                  </div>
+                </div>
+              </div>
+              <div class="opt-block">
+                <div class="opt-block-label">DEPOIS</div>
+                <div class="opt-block-content">
+                  <div class="opt-block-cmd">/speckit.checklist</div>
+                  <div class="opt-block-desc">
+                    Gera checklist de qualidade personalizado baseado nos
+                    requisitos da feature
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="terminal">
+                <div class="terminal-titlebar">
+                  <span class="traffic-light tl-red"></span>
+                  <span class="traffic-light tl-yellow"></span>
+                  <span class="traffic-light tl-green"></span>
+                  <span class="terminal-title">zsh — ~/projeto</span>
+                  <button
+                    class="terminal-copy-btn"
+                    data-copy="/speckit.plan"
+                  >
+                    Copiar
+                  </button>
+                </div>
+                <div class="terminal-body">
+                  <div class="t-line">
+                    <span class="t-prompt">~/projeto&nbsp;$&nbsp;</span>
+                    <span
+                      class="t-cmd"
+                      data-type="/speckit.plan"
+                    ></span
+                    ><span class="t-cursor"></span>
+                  </div>
+                  <hr class="t-divider" />
+                  <div class="t-output">
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        >Stack de backend + frontend selecionados</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        >N bounded contexts identificados e isolados</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        >Estratégia de autenticação definida</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        >SLAs de performance documentados</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        >Modelo de dados + transições mapeados</span
+                      >
+                    </div>
+                    <hr class="t-divider" />
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">⚡ Constitution re-validada</span> —
+                        todos os gates passando</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text t-success"
+                        ><strong
+                          >plan.md + openapi.yml + data-model.md criados</strong
+                        ></span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 8: TASKS ─────────────────────────────────────── -->
+      <section
+        class="slide slide-dark"
+        data-slide="8"
+      >
+        <div class="slide-inner wide">
+          <div class="two-col stagger">
+            <div>
+              <div class="eyebrow">
+                <span class="eyebrow-dot"></span>Etapa 4
+              </div>
+              <h3 class="section-title">Tasks</h3>
+              <p
+                class="body-text"
+                style="margin-bottom: 12px"
+              >
+                Gera uma lista ordenada por dependências de tarefas
+                <strong style="color: var(--text-primary)"
+                  >atômicas e paralelizáveis</strong
+                >, cada uma mapeada para uma User Story, arquivo-alvo e fase de
+                execução.
+              </p>
+
+              <div
+                style="
+                  display: flex;
+                  gap: 16px;
+                  flex-wrap: wrap;
+                  padding: 14px;
+                  background: rgba(255, 255, 255, 0.02);
+                  border: 1px solid var(--border-subtle);
+                  border-radius: 8px;
+                  margin-bottom: 12px;
+                "
+              >
+                <div style="text-align: center; flex: 1; min-width: 50px">
+                  <div
+                    style="
+                      font-size: 24px;
+                      font-weight: 510;
+                      color: var(--accent);
+                      font-family: 'JetBrains Mono', monospace;
+                      line-height: 1;
+                    "
+                  >
+                    N
+                  </div>
+                  <div
+                    style="
+                      font-size: 10.5px;
+                      color: var(--text-muted);
+                      margin-top: 3px;
+                    "
+                  >
+                    tarefas geradas
+                  </div>
+                </div>
+                <div style="text-align: center; flex: 1; min-width: 50px">
+                  <div
+                    style="
+                      font-size: 24px;
+                      font-weight: 510;
+                      color: var(--accent);
+                      font-family: 'JetBrains Mono', monospace;
+                      line-height: 1;
+                    "
+                  >
+                    M
+                  </div>
+                  <div
+                    style="
+                      font-size: 10.5px;
+                      color: var(--text-muted);
+                      margin-top: 3px;
+                    "
+                  >
+                    fases ordenadas
+                  </div>
+                </div>
+                <div style="text-align: center; flex: 1; min-width: 50px">
+                  <div
+                    style="
+                      font-size: 24px;
+                      font-weight: 510;
+                      color: var(--accent);
+                      font-family: 'JetBrains Mono', monospace;
+                      line-height: 1;
+                    "
+                  >
+                    [P]
+                  </div>
+                  <div
+                    style="
+                      font-size: 10.5px;
+                      color: var(--text-muted);
+                      margin-top: 3px;
+                    "
+                  >
+                    paralelizável
+                  </div>
+                </div>
+                <div style="text-align: center; flex: 1; min-width: 60px">
+                  <div
+                    style="
+                      font-size: 24px;
+                      font-weight: 510;
+                      color: var(--accent);
+                      font-family: 'JetBrains Mono', monospace;
+                      line-height: 1;
+                    "
+                  >
+                    [US#]
+                  </div>
+                  <div
+                    style="
+                      font-size: 10.5px;
+                      color: var(--text-muted);
+                      margin-top: 3px;
+                    "
+                  >
+                    rastreabilidade
+                  </div>
+                </div>
+              </div>
+
+              <div class="opt-block">
+                <div class="opt-block-label">DEPOIS</div>
+                <div class="opt-block-content">
+                  <div class="opt-block-cmd">/speckit.analyze</div>
+                  <div class="opt-block-desc">
+                    Relatório de consistência cross-artifact: verifica
+                    alinhamento entre spec, plan e tasks
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="terminal">
+                <div class="terminal-titlebar">
+                  <span class="traffic-light tl-red"></span>
+                  <span class="traffic-light tl-yellow"></span>
+                  <span class="traffic-light tl-green"></span>
+                  <span class="terminal-title">zsh — tasks.md</span>
+                  <button
+                    class="terminal-copy-btn"
+                    data-copy="/speckit.tasks"
+                  >
+                    Copiar
+                  </button>
+                </div>
+                <div
+                  class="terminal-body"
+                  style="font-size: 12px"
+                >
+                  <div class="t-line">
+                    <span class="t-prompt">~/projeto&nbsp;$&nbsp;</span>
+                    <span
+                      class="t-cmd"
+                      data-type="/speckit.tasks"
+                    ></span
+                    ><span class="t-cursor"></span>
+                  </div>
+                  <hr class="t-divider" />
+                  <div class="t-output">
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text t-muted"
+                        >## Phase 1: Setup</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><strong>[T001]</strong> Configurar repositório e
+                        workspaces</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><strong>[T002] [P]</strong> Scaffold do projeto
+                        backend</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><strong>[T003] [P]</strong> Scaffold do projeto
+                        frontend</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text t-muted"
+                        >## Phase 2: Foundational</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><strong>[T00N] [P]</strong> Configurar banco de
+                        dados</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text t-muted"
+                        >## Phase 3: User Story 1 (P1) 🎯</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><strong>[T0NN] [P] [US1]</strong> Interface de
+                        repositório</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text t-muted"
+                        >... N tarefas em M fases</span
+                      >
+                    </div>
+                    <hr class="t-divider" />
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text t-success"
+                        ><strong
+                          >tasks.md → N tarefas, dependency-ordered</strong
+                        ></span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 9: IMPLEMENT ─────────────────────────────────── -->
+      <section
+        class="slide slide-dark"
+        data-slide="9"
+      >
+        <div class="slide-inner wide">
+          <div class="two-col stagger">
+            <div>
+              <div class="eyebrow">
+                <span class="eyebrow-dot"></span>Etapa 5
+              </div>
+              <h3 class="section-title">Implement</h3>
+              <p
+                class="body-text"
+                style="margin-bottom: 12px"
+              >
+                Executa as tarefas do
+                <span
+                  style="
+                    font-family: 'JetBrains Mono', monospace;
+                    color: var(--accent);
+                    font-size: 12.5px;
+                  "
+                  >tasks.md</span
+                >
+                em ordem, validando checkpoints entre fases e aplicando os gates
+                da Constitution a cada módulo gerado.
+              </p>
+              <p
+                class="body-text"
+                style="
+                  color: var(--text-muted);
+                  font-size: 13px;
+                  margin-bottom: 16px;
+                "
+              >
+                Cada checkpoint garante que o código está alinhado à spec, ao
+                plano técnico e aos princípios arquiteturais antes de avançar
+                para a próxima fase.
+              </p>
+
+              <div class="artifact-list">
+                <div
+                  class="artifact-item"
+                  style="
+                    background: rgba(39, 166, 68, 0.04);
+                    border-color: rgba(39, 166, 68, 0.15);
+                  "
+                >
+                  <span class="artifact-icon">✅</span>
+                  <span
+                    class="artifact-name"
+                    style="color: var(--success)"
+                    >Phase 1 — Setup</span
+                  >
+                  <span
+                    class="artifact-desc"
+                    style="color: rgba(39, 166, 68, 0.7)"
+                    >ambiente configurado</span
+                  >
+                </div>
+                <div
+                  class="artifact-item"
+                  style="
+                    background: rgba(39, 166, 68, 0.04);
+                    border-color: rgba(39, 166, 68, 0.15);
+                  "
+                >
+                  <span class="artifact-icon">✅</span>
+                  <span
+                    class="artifact-name"
+                    style="color: var(--success)"
+                    >Phase 2 — Foundational</span
+                  >
+                  <span
+                    class="artifact-desc"
+                    style="color: rgba(39, 166, 68, 0.7)"
+                    >infraestrutura pronta</span
+                  >
+                </div>
+                <div class="artifact-item">
+                  <span class="artifact-icon">⏳</span>
+                  <span
+                    class="artifact-name"
+                    style="color: var(--text-muted)"
+                    >Phase 3..N — User Stories</span
+                  >
+                  <span class="artifact-desc">em execução sequencial</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="terminal">
+                <div class="terminal-titlebar">
+                  <span class="traffic-light tl-red"></span>
+                  <span class="traffic-light tl-yellow"></span>
+                  <span class="traffic-light tl-green"></span>
+                  <span class="terminal-title">zsh — ~/projeto</span>
+                  <button
+                    class="terminal-copy-btn"
+                    data-copy="/speckit.implement"
+                  >
+                    Copiar
+                  </button>
+                </div>
+                <div
+                  class="terminal-body"
+                  style="font-size: 12px"
+                >
+                  <div class="t-line">
+                    <span class="t-prompt">~/projeto&nbsp;$&nbsp;</span>
+                    <span
+                      class="t-cmd"
+                      data-type="/speckit.implement"
+                    ></span
+                    ><span class="t-cursor"></span>
+                  </div>
+                  <hr class="t-divider" />
+                  <div class="t-output">
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text t-muted"
+                        >Verificando gates da Constitution...</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">✅</span> T001 — Repositório e
+                        workspaces configurados</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">✅</span> T002 — Backend scaffolded e
+                        compilando</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">✅</span> T003 — Frontend scaffolded e
+                        compilando</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">✅</span> T00N — Interface de
+                        repositório criada</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">•</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">✅</span> T00M — Serviço injetado via
+                        interface token</span
+                      >
+                    </div>
+                    <hr class="t-divider" />
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text"
+                        ><span class="hl">⚡ Checkpoint</span>: Phase 2 completa
+                        — API acessível</span
+                      >
+                    </div>
+                    <div class="t-bullet">
+                      <span class="t-bullet-dot">›</span
+                      ><span class="t-bullet-text t-success"
+                        ><strong
+                          >N/M tarefas concluídas — tasks.md atualizado</strong
+                        ></span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 10: BENEFÍCIOS ───────────────────────────────── -->
+      <section
+        class="slide slide-hero"
+        data-slide="10"
+      >
+        <div class="slide-inner wide">
+          <div
+            class="stagger"
+            style="
+              text-align: center;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+            "
+          >
+            <div class="eyebrow">
+              <span class="eyebrow-dot"></span>Resultados
+            </div>
+            <h2
+              class="display"
+              style="text-align: center"
+            >
+              Por que Spec-Kit?
+            </h2>
+            <p
+              class="subtitle"
+              style="text-align: center; margin-bottom: 28px"
+            >
+              Processo estruturado, replicável e mensurável — independente do
+              tamanho da feature ou da equipe.
+            </p>
+
+            <div
+              class="benefit-grid"
+              style="width: 100%"
+            >
+              <div class="benefit-card">
+                <div class="benefit-number">Auto</div>
+                <div class="benefit-label">
+                  Tarefas geradas a partir de contratos reais
+                </div>
+              </div>
+              <div class="benefit-card">
+                <div class="benefit-number">5</div>
+                <div class="benefit-label">
+                  Gates de validação arquitetural por feature
+                </div>
+              </div>
+              <div class="benefit-card">
+                <div class="benefit-number">100%</div>
+                <div class="benefit-label">
+                  Rastreabilidade task → user story
+                </div>
+              </div>
+              <div class="benefit-card">
+                <div class="benefit-number">Zero</div>
+                <div class="benefit-label">
+                  Decisões arquiteturais no meio do código
+                </div>
+              </div>
+            </div>
+
+            <div
+              style="
+                margin-top: 24px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                width: 100%;
+              "
+            >
+              <div
+                style="
+                  padding: 14px 16px;
+                  background: rgba(255, 255, 255, 0.02);
+                  border: 1px solid var(--border-subtle);
+                  border-radius: 8px;
+                  text-align: left;
+                "
+              >
+                <p
+                  style="
+                    font-size: 13px;
+                    font-weight: 590;
+                    color: var(--text-primary);
+                    margin-bottom: 5px;
+                  "
+                >
+                  Sem Spec-Kit
+                </p>
+                <p
+                  style="
+                    font-size: 12px;
+                    color: var(--text-muted);
+                    line-height: 1.65;
+                  "
+                >
+                  Ambiguidade → decisões no meio da implementação → retrabalho
+                  constante → scope creep silencioso.
+                </p>
+              </div>
+              <div
+                style="
+                  padding: 14px 16px;
+                  background: rgba(94, 106, 210, 0.06);
+                  border: 1px solid rgba(94, 106, 210, 0.2);
+                  border-radius: 8px;
+                  text-align: left;
+                "
+              >
+                <p
+                  style="
+                    font-size: 13px;
+                    font-weight: 590;
+                    color: var(--accent);
+                    margin-bottom: 5px;
+                  "
+                >
+                  Com Spec-Kit
+                </p>
+                <p
+                  style="
+                    font-size: 12px;
+                    color: var(--text-secondary);
+                    line-height: 1.65;
+                  "
+                >
+                  Especificação imutável → plano validado → tarefas atômicas →
+                  código com rastreabilidade total.
+                </p>
+              </div>
+              <div
+                style="
+                  padding: 14px 16px;
+                  background: rgba(255, 255, 255, 0.02);
+                  border: 1px solid var(--border-subtle);
+                  border-radius: 8px;
+                  text-align: left;
+                "
+              >
+                <p
+                  style="
+                    font-size: 13px;
+                    font-weight: 590;
+                    color: var(--text-primary);
+                    margin-bottom: 5px;
+                  "
+                >
+                  Próximo passo
+                </p>
+                <p
+                  style="
+                    font-size: 12px;
+                    color: var(--text-muted);
+                    line-height: 1.65;
+                  "
+                >
+                  Execute <span class="tag">/speckit.specify</span> com a sua
+                  próxima feature e veja o processo em ação em minutos.
+                </p>
+              </div>
+            </div>
+
+            <div
+              style="
+                margin-top: 24px;
+                display: flex;
+                gap: 9px;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+              "
+            >
+              <span class="tag">/speckit.constitution</span>
+              <span style="color: var(--text-subtle)">→</span>
+              <span class="tag">/speckit.specify</span>
+              <span style="color: var(--text-subtle)">→</span>
+              <span class="tag">/speckit.plan</span>
+              <span style="color: var(--text-subtle)">→</span>
+              <span class="tag">/speckit.tasks</span>
+              <span style="color: var(--text-subtle)">→</span>
+              <span class="tag">/speckit.implement</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 11: COMPARATIVO -->
+      <section class="slide slide-dark" data-slide="11">
+        <div class="slide-inner wide">
+          <div class="stagger" style="width:100%;">
+            <p class="eyebrow">CONTEXTO</p>
+            <h2 style="margin-bottom:8px;">As Melhores Ferramentas de<br>Spec-Driven Development</h2>
+            <p style="color:var(--text-subtle); font-size:15px; margin-bottom:28px;">
+              A tabela abaixo resume as seis ferramentas avaliadas. Cada seção subsequente cobre arquitetura, observações de testes, trade-offs e preços em detalhes.
+            </p>
+            <div style="overflow-x:auto; border-radius:10px; border:1px solid var(--border);">
+              <table style="width:100%; border-collapse:collapse; font-size:13.5px; white-space:nowrap;">
+                <thead>
+                  <tr style="border-bottom:1px solid var(--border);">
+                    <th style="padding:12px 16px; text-align:left; color:var(--text-subtle); font-weight:500;">Ferramenta</th>
+                    <th style="padding:12px 16px; text-align:left; color:var(--text-subtle); font-weight:500;">Tipo de Spec</th>
+                    <th style="padding:12px 16px; text-align:left; color:var(--text-subtle); font-weight:500;">Multi-Agent</th>
+                    <th style="padding:12px 16px; text-align:left; color:var(--text-subtle); font-weight:500;">Flexibilidade</th>
+                    <th style="padding:12px 16px; text-align:left; color:var(--text-subtle); font-weight:500;">Melhor Para</th>
+                    <th style="padding:12px 16px; text-align:left; color:var(--text-subtle); font-weight:500;">Preço Inicial</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:13px 16px; font-weight:600; color:var(--text-primary);">Intent</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Living (bidirectional)</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Coordinator + specialists</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">BYOA (4+ agents)</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Multi-service, complex codebases</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">$60/mo (up to 20 users)</td>
+                  </tr>
+                  <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:13px 16px; font-weight:600; color:var(--text-primary);">Kiro</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Static (EARS notation)</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Single agent + hooks</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Claude models only</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">AWS-native greenfield projects</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Free (50 credits/mo)</td>
+                  </tr>
+                  <tr style="border-bottom:1px solid var(--border); background:rgba(113,112,255,0.06);">
+                    <td style="padding:13px 16px; font-weight:700; color:var(--accent);">GitHub Spec Kit</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Static (markdown)</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">None (agent-agnostic)</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">8+ supported agents</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Open-source cross-agent standardization</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Free (MIT license)</td>
+                  </tr>
+                  <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:13px 16px; font-weight:600; color:var(--text-primary);">OpenSpec</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Semi-living (delta markers)</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">None (agent-agnostic)</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">20+ supported agents</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Brownfield iterative changes</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Free (open-source)</td>
+                  </tr>
+                  <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:13px 16px; font-weight:600; color:var(--text-primary);">BMAD-METHOD</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Static (docs-as-code)</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">12+ role-based agents</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">IDE-agnostic</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Framework-heavy enterprise planning</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Free (open-source)</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:13px 16px; font-weight:600; color:var(--text-primary);">Cursor + .cursorrules</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Pseudo-specs (rules)</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">None</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Cursor-native only</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">Developers already in Cursor</td>
+                    <td style="padding:13px 16px; color:var(--text-secondary);">$20/mo (Pro)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 12: OBRIGADO -->
+      <section class="slide slide-dark" data-slide="12">
+        <div class="slide-inner" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; height:100%;">
+          <div class="stagger">
+            <p class="eyebrow" style="justify-content:center;">FIM</p>
+            <h1 style="font-size:clamp(52px,7vw,88px); font-weight:700; letter-spacing:-3px; line-height:1.05; margin-bottom:24px;">
+              Obrigado
+            </h1>
+            <p style="font-size:18px; color:var(--text-subtle); max-width:480px; margin:0 auto 40px; line-height:1.6;">
+              Dúvidas, feedbacks ou quer experimentar o Spec-Kit no seu próximo projeto?
+            </p>
+            <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+              <span class="tag" style="font-size:14px; padding:8px 16px;">github.com/github/spec-kit</span>
+              <span class="tag" style="font-size:14px; padding:8px 16px;">/speckit.*</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <!-- /.slides-wrap -->
+
+    <script>
+      ;(function () {
+        'use strict'
+
+        /* ── State ── */
+        const TOTAL = 12
+        let current = 1
+        let isAnimating = false
+
+        /* ── DOM refs ── */
+        const slidesWrap = document.getElementById('slidesWrap')
+        const slides = Array.from(slidesWrap.querySelectorAll('.slide'))
+        const progressBar = document.getElementById('progressBar')
+        const btnPrev = document.getElementById('btnPrev')
+        const btnNext = document.getElementById('btnNext')
+        const toast = document.getElementById('toast')
+
+        /* ── Build progress dots ── */
+        const dots = []
+        for (let i = 1; i <= TOTAL; i++) {
+          const dot = document.createElement('button')
+          dot.className = 'progress-dot'
+          dot.setAttribute('aria-label', `Slide ${i}`)
+          dot.dataset.slide = String(i)
+          dot.addEventListener('click', () => goTo(i))
+          dots.push(dot)
+          progressBar.appendChild(dot)
+        }
+        const counter = document.createElement('div')
+        counter.className = 'progress-counter'
+        progressBar.appendChild(counter)
+
+        /* ── Helpers ── */
+        const getSlide = (n) =>
+          slides.find((s) => parseInt(s.dataset.slide, 10) === n)
+
+        /* ── Typing effect ── */
+        const activeTypers = []
+
+        function clearTypers() {
+          activeTypers.forEach((id) => clearTimeout(id))
+          activeTypers.length = 0
+        }
+
+        function typeCommand(el, text) {
+          el.textContent = ''
+          let i = 0
+          const tick = () => {
+            if (i <= text.length) {
+              el.textContent = text.slice(0, i++)
+              activeTypers.push(setTimeout(tick, 42))
+            }
+          }
+          tick()
+        }
+
+        function startTypers(slideEl) {
+          slideEl.querySelectorAll('[data-type]').forEach((el, idx) => {
+            const id = setTimeout(
+              () => typeCommand(el, el.dataset.type),
+              idx * 200 + 350,
+            )
+            activeTypers.push(id)
+          })
+        }
+
+        /* ── UI update ── */
+        function updateUI() {
+          dots.forEach((dot, i) =>
+            dot.classList.toggle('active', i + 1 === current),
+          )
+          counter.textContent = `${current} / ${TOTAL}`
+          btnPrev.disabled = current === 1
+          btnNext.disabled = current === TOTAL
+        }
+
+        /* ── Navigate ── */
+        function goTo(target, dir) {
+          if (isAnimating || target === current || target < 1 || target > TOTAL)
+            return
+          dir = dir ?? (target > current ? 'forward' : 'backward')
+
+          const fromEl = getSlide(current)
+          const toEl = getSlide(target)
+
+          isAnimating = true
+          clearTypers()
+
+          fromEl.classList.remove('active')
+          fromEl.classList.add(dir === 'forward' ? 'exit-up' : 'exit-down')
+
+          /* Set entry position, then release to trigger CSS transition */
+          toEl.style.cssText = `transform:translateY(${dir === 'forward' ? '60px' : '-60px'});opacity:0;transition:none;`
+          toEl.getBoundingClientRect() // force reflow
+          toEl.style.cssText = ''
+          toEl.classList.add('active')
+
+          startTypers(toEl)
+
+          const cleanup = () => {
+            fromEl.classList.remove('exit-up', 'exit-down')
+            isAnimating = false
+          }
+          fromEl.addEventListener('transitionend', cleanup, { once: true })
+          setTimeout(cleanup, 520)
+
+          current = target
+          updateUI()
+        }
+
+        const next = () => goTo(current + 1, 'forward')
+        const prev = () => goTo(current - 1, 'backward')
+
+        /* ── Keyboard navigation ── */
+        document.addEventListener('keydown', (e) => {
+          if (['ArrowRight', 'ArrowDown', ' '].includes(e.key)) {
+            e.preventDefault()
+            next()
+          } else if (['ArrowLeft', 'ArrowUp'].includes(e.key)) {
+            e.preventDefault()
+            prev()
+          }
+        })
+
+        btnNext.addEventListener('click', next)
+        btnPrev.addEventListener('click', prev)
+
+        /* ── Copy buttons ── */
+        let toastTimer
+
+        document.querySelectorAll('.terminal-copy-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const text = btn.dataset.copy
+            if (!text) return
+
+            const onCopied = () => {
+              btn.textContent = 'Copiado!'
+              btn.classList.add('copied')
+              toast.classList.add('show')
+              clearTimeout(toastTimer)
+              toastTimer = setTimeout(() => {
+                toast.classList.remove('show')
+                btn.textContent = 'Copiar'
+                btn.classList.remove('copied')
+              }, 2000)
+            }
+
+            if (navigator.clipboard) {
+              navigator.clipboard
+                .writeText(text)
+                .then(onCopied)
+                .catch(() => fallbackCopy(text, onCopied))
+            } else {
+              fallbackCopy(text, onCopied)
+            }
+          })
+        })
+
+        function fallbackCopy(text, cb) {
+          const ta = document.createElement('textarea')
+          ta.value = text
+          ta.style.cssText =
+            'position:fixed;top:-9999px;left:-9999px;opacity:0;'
+          document.body.appendChild(ta)
+          ta.select()
+          try {
+            document.execCommand('copy')
+            cb()
+          } catch (_) {}
+          document.body.removeChild(ta)
+        }
+
+        /* ── Touch / Swipe ── */
+        let touchStartY = 0
+        slidesWrap.addEventListener(
+          'touchstart',
+          (e) => {
+            touchStartY = e.touches[0].clientY
+          },
+          { passive: true },
+        )
+        slidesWrap.addEventListener(
+          'touchend',
+          (e) => {
+            const dy = e.changedTouches[0].clientY - touchStartY
+            if (Math.abs(dy) > 40) {
+              dy < 0 ? next() : prev()
+            }
+          },
+          { passive: true },
+        )
+
+        /* ── Init ── */
+        getSlide(1).classList.add('active')
+        startTypers(getSlide(1))
+        updateUI()
+      })()
+    </script>
+  </body>
+</html>

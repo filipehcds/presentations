@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presentations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/js/all.min.js"
+      crossorigin="anonymous"
+      defer
+    ></script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --purple: #6c5ce7;
+        --purple-light: #a29bfe;
+        --blue: #0984e3;
+        --yellow: #fdcb6e;
+        --orange: #e17055;
+        --teal: #00b894;
+        --coral: #fd79a8;
+        --red: #d63031;
+        --bg: #ffffff;
+        --text: #1a1a2e;
+        --text-muted: #636e72;
+        --card-bg: #f8f9fa;
+        --card-border: #e9ecef;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── Decorative shapes ──────────────────────────────────────── */
+      .deco {
+        position: fixed;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* X shapes */
+      .deco-x {
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1;
+        opacity: 0.85;
+      }
+      .deco-x-1  { top: 6%;   left: 3%;   color: var(--blue);   font-size: 32px; }
+      .deco-x-2  { top: 18%;  right: 5%;  color: var(--purple); font-size: 24px; }
+      .deco-x-3  { bottom: 22%; left: 6%; color: var(--orange); font-size: 26px; }
+      .deco-x-4  { bottom: 8%;  right: 4%; color: var(--teal);  font-size: 22px; }
+
+      /* Dots */
+      .deco-dot {
+        border-radius: 50%;
+      }
+      .deco-dot-1 { top: 12%;  left: 14%;  width: 14px; height: 14px; background: var(--yellow); }
+      .deco-dot-2 { top: 8%;   right: 18%; width: 10px; height: 10px; background: var(--coral);  }
+      .deco-dot-3 { bottom: 30%; left: 18%; width: 12px; height: 12px; background: var(--purple-light); }
+      .deco-dot-4 { bottom: 15%; right: 20%; width: 14px; height: 14px; background: var(--teal); }
+      .deco-dot-5 { top: 45%;   left: 4%;   width: 10px; height: 10px; background: var(--coral); }
+      .deco-dot-6 { top: 55%;   right: 3%;  width: 12px; height: 12px; background: var(--yellow);}
+
+      /* Triangles */
+      .deco-tri {
+        width: 0;
+        height: 0;
+      }
+      .deco-tri-1 {
+        top: 22%; left: 7%;
+        border-left: 11px solid transparent;
+        border-right: 11px solid transparent;
+        border-bottom: 20px solid var(--teal);
+        opacity: 0.75;
+      }
+      .deco-tri-2 {
+        top: 14%; right: 10%;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 18px solid var(--orange);
+        opacity: 0.75;
+      }
+      .deco-tri-3 {
+        bottom: 18%; left: 11%;
+        border-left: 9px solid transparent;
+        border-right: 9px solid transparent;
+        border-bottom: 16px solid var(--blue);
+        opacity: 0.7;
+      }
+      .deco-tri-4 {
+        bottom: 25%; right: 8%;
+        border-left: 11px solid transparent;
+        border-right: 11px solid transparent;
+        border-bottom: 20px solid var(--purple);
+        opacity: 0.7;
+      }
+
+      /* Blobs */
+      .deco-blob {
+        border-radius: 50%;
+        filter: blur(40px);
+        opacity: 0.18;
+      }
+      .deco-blob-1 {
+        bottom: -60px; left: -60px;
+        width: 320px; height: 260px;
+        background: var(--red);
+      }
+      .deco-blob-2 {
+        bottom: -40px; right: -40px;
+        width: 280px; height: 220px;
+        background: var(--teal);
+      }
+      .deco-blob-3 {
+        top: -80px; right: 10%;
+        width: 340px; height: 280px;
+        background: var(--purple);
+        opacity: 0.1;
+      }
+
+      /* Squiggles / wavy lines (SVG inline) */
+      .deco-wave { opacity: 0.55; }
+      .deco-wave-1 { top: 35%; left: 2%; }
+      .deco-wave-2 { top: 60%; right: 2%; }
+
+      /* ── Layout ─────────────────────────────────────────────────── */
+      .page {
+        position: relative;
+        z-index: 1;
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 72px 24px 80px;
+      }
+
+      /* ── Header ─────────────────────────────────────────────────── */
+      .header {
+        text-align: center;
+        margin-bottom: 56px;
+      }
+
+      .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(108, 92, 231, 0.08);
+        border: 1.5px solid rgba(108, 92, 231, 0.2);
+        border-radius: 100px;
+        padding: 6px 16px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--purple);
+        margin-bottom: 24px;
+      }
+
+      .header-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--purple);
+      }
+
+      .header h1 {
+        font-size: clamp(36px, 6vw, 64px);
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -1.5px;
+        color: var(--text);
+        margin-bottom: 16px;
+      }
+
+      .header h1 span {
+        color: var(--purple);
+      }
+
+      .header p {
+        font-size: 17px;
+        font-weight: 400;
+        line-height: 1.6;
+        color: var(--text-muted);
+        max-width: 520px;
+        margin: 0 auto;
+      }
+
+      /* ── Grid ───────────────────────────────────────────────────── */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 20px;
+      }
+
+      /* ── Card ───────────────────────────────────────────────────── */
+      .card {
+        background: var(--card-bg);
+        border: 1.5px solid var(--card-border);
+        border-radius: 16px;
+        padding: 28px;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--card-accent, var(--purple));
+        opacity: 0;
+        transition: opacity 0.2s;
+        border-radius: inherit;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        border-color: var(--card-accent, var(--purple));
+      }
+
+      .card:hover::before {
+        opacity: 0.03;
+      }
+
+      .card-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--card-accent, var(--purple));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #fff;
+        flex-shrink: 0;
+      }
+
+      .card-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--card-accent, var(--purple));
+        background: color-mix(in srgb, var(--card-accent, var(--purple)) 10%, transparent);
+        border-radius: 6px;
+        padding: 3px 9px;
+        width: fit-content;
+      }
+
+      .card h2 {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        color: var(--text);
+        line-height: 1.25;
+      }
+
+      .card p {
+        font-size: 14px;
+        line-height: 1.65;
+        color: var(--text-muted);
+        flex: 1;
+      }
+
+      .card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 6px;
+        border-top: 1px solid var(--card-border);
+      }
+
+      .card-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      .card-arrow {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--card-accent, var(--purple));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 14px;
+        transition: transform 0.2s;
+      }
+
+      .card:hover .card-arrow {
+        transform: translateX(3px);
+      }
+
+      /* ── Empty state ─────────────────────────────────────────────── */
+      .empty {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 48px 24px;
+        color: var(--text-muted);
+        font-size: 15px;
+      }
+
+      /* ── Footer ─────────────────────────────────────────────────── */
+      .footer {
+        text-align: center;
+        margin-top: 64px;
+        font-size: 13px;
+        color: #b2bec3;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- Decorative shapes -->
+    <div class="deco deco-x deco-x-1">×</div>
+    <div class="deco deco-x deco-x-2">×</div>
+    <div class="deco deco-x deco-x-3">×</div>
+    <div class="deco deco-x deco-x-4">×</div>
+
+    <div class="deco deco-dot deco-dot-1"></div>
+    <div class="deco deco-dot deco-dot-2"></div>
+    <div class="deco deco-dot deco-dot-3"></div>
+    <div class="deco deco-dot deco-dot-4"></div>
+    <div class="deco deco-dot deco-dot-5"></div>
+    <div class="deco deco-dot deco-dot-6"></div>
+
+    <div class="deco deco-tri deco-tri-1"></div>
+    <div class="deco deco-tri deco-tri-2"></div>
+    <div class="deco deco-tri deco-tri-3"></div>
+    <div class="deco deco-tri deco-tri-4"></div>
+
+    <div class="deco deco-blob deco-blob-1"></div>
+    <div class="deco deco-blob deco-blob-2"></div>
+    <div class="deco deco-blob deco-blob-3"></div>
+
+    <svg class="deco deco-wave deco-wave-1" width="48" height="24" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 12 C8 4, 16 4, 24 12 S40 20, 48 12" stroke="#6c5ce7" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </svg>
+    <svg class="deco deco-wave deco-wave-2" width="48" height="24" viewBox="0 0 48 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 12 C8 4, 16 4, 24 12 S40 20, 48 12" stroke="#00b894" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </svg>
+
+    <!-- Page content -->
+    <div class="page">
+      <header class="header">
+        <div class="header-badge">
+          <span class="header-badge-dot"></span>
+          Presentations
+        </div>
+        <h1>Minhas <span>Apresentações</span></h1>
+        <p>Slides e materiais sobre metodologias, ferramentas e boas práticas de desenvolvimento.</p>
+      </header>
+
+      <div class="grid">
+
+        <a
+          href="presentations/speckit-development.html"
+          class="card"
+          style="--card-accent: #6c5ce7"
+        >
+          <div class="card-icon"><i class="fa-solid fa-bolt"></i></div>
+          <div class="card-tag">Metodologia</div>
+          <h2>Spec-Kit Development</h2>
+          <p>
+            Do problema ao código de produção com rastreabilidade total,
+            zero ambiguidade e geração automática de tarefas.
+          </p>
+          <div class="card-footer">
+            <span class="card-meta">12 slides · PT-BR</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+
+        <a
+          href="presentations/harness-engineer.html"
+          class="card"
+          style="--card-accent: #0984e3"
+        >
+          <div class="card-icon"><i class="fa-solid fa-microchip"></i></div>
+          <div class="card-tag">IA & LLMs</div>
+          <h2>Harness Engineer</h2>
+          <p>
+            Do que é uma LLM a agentes em produção — context engineering,
+            RAG, tool use, evals e observabilidade.
+          </p>
+          <div class="card-footer">
+            <span class="card-meta">8 slides · PT-BR</span>
+            <span class="card-arrow">→</span>
+          </div>
+        </a>
+
+      </div>
+
+      <footer class="footer">
+        &copy; 2026 · Filipe Henrique
+      </footer>
+    </div>
+
+  </body>
+</html>
