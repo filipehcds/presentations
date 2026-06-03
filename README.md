@@ -2,7 +2,7 @@
 
 Repositório pessoal de apresentações técnicas sobre desenvolvimento de software, IA, metodologias e boas práticas.
 
-**Live:** https://filipehenrique.github.io/presentations/
+**Live:** https://filipehcds.github.io/presentations/
 
 ## Estrutura
 
